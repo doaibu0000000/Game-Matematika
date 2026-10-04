@@ -390,7 +390,7 @@
         <button id="pg-last" aria-label="Halaman terakhir">▶|</button>
       </div>
       <div class="level-grid" id="level-grid"></div>
-      <p class="tip">Lulus = minimal 7 jawaban benar dari 10 soal.<br>★★★ = 9–10 benar · ★★ = 8 benar · ★ = 7 benar</p>
+      <p class="tip">Lulus = minimal 7 benar dari 10 soal — ada batas waktu per soal!<br>Jawab cepat sebelum waktu habis untuk meraih ★★★★★.</p>
     </section>
 
     <!-- ================= LATIHAN BEBAS ================= -->
@@ -534,6 +534,16 @@
   const GRID_COLS = 5;
   const PAGE_SIZE = GRID_COLS * 10;                          // 50 level per halaman
 
+  /* waktu per soal: batas keras per tingkat (detik) + target "cepat" (syarat bintang)
+     yang menyempit seiring nomor level bertambah — makin tinggi level, makin sulit ★5 */
+  const TIER_LIMIT = [20, 20, 25, 30, 35];
+  function questionLimit(tier) { return TIER_LIMIT[tier]; }
+  function speedTarget(tier, lvl) {
+    const t = TIER_LIMIT[tier];
+    const f = (lvl - 0.5) / LEVELS_PER_TIER;   // 0,05 .. 0,95
+    return Math.max(2.5, t * (0.55 - 0.30 * f));
+  }
+
   function levelConfig(tier, lvl) { // lvl: 1..700
     const t = TIER_DEFS[tier];
     const f = (lvl - 0.5) / LEVELS_PER_TIER;
@@ -564,6 +574,14 @@
     lock: false,
     finished: false,
     timeId: null,
+    qTimeId: null,
+    qTimes: [],
+    fastCount: 0,
+    qTarget: 0,
+    qLimit: 0,
+    qTimeLeft: 0,
+    qPaused: 0,
+    qStart: 0,
     q: null,
     act: null,
     muted: store.get('muted', false)
@@ -578,6 +596,14 @@
     starsRaw = starsRaw.slice(0, TOTAL_LEVELS);
   }
   S.stars = starsRaw;
+
+  /* migrasi bintang skala lama (maks 3) ke skala 5 bintang —
+     bintang lama naik satu tingkat, kecepatan belum terbukti (maks 4) */
+  if (store.get('stars5', false) !== true) {
+    S.stars = S.stars.map((s) => (s > 0 ? Math.min(4, s + 1) : 0));
+    store.set('stars', S.stars);
+    store.set('stars5', true);
+  }
 
   /* migrasi rekor versi lama (sebelum ada jangkauan) */
   ['latihan', 'tantangan'].forEach((m) => {
@@ -709,7 +735,7 @@
 
   function updateAdventure() {
     const ts = totalStars();
-    $('#adv-stars').textContent = '⭐ ' + fmtNum(ts) + '/' + fmtNum(TOTAL_LEVELS * 3);
+    $('#adv-stars').textContent = '⭐ ' + fmtNum(ts) + '/' + fmtNum(TOTAL_LEVELS * 5);
     $('#star-total').textContent = '⭐ ' + fmtNum(ts);
     const passed = S.stars.filter((s) => s > 0).length;
     if (passed >= TOTAL_LEVELS) {
@@ -778,7 +804,7 @@
       cell.className = 'level-cell ' + (!unlocked ? 'lvl-locked' : (st > 0 ? 'lvl-passed' : 'lvl-open'));
       let starHtml = '';
       if (st > 0) {
-        starHtml = '<span class="s-on">★</span>'.repeat(st) + '<span class="s-off">★</span>'.repeat(3 - st);
+        starHtml = '<span class="s-on">★</span>'.repeat(st) + '<span class="s-off">★</span>'.repeat(5 - st);
       }
       cell.innerHTML =
         '<span class="level-circle">' + (unlocked ? num : '🔒') + '</span>' +
@@ -854,9 +880,15 @@
     S.lock = false; S.finished = false;
 
     $('#streak').classList.add('hidden');
-    $('#timer').classList.toggle('hidden', S.mode !== 'tantangan');
+    $('#timer').classList.toggle('hidden', !(S.mode === 'tantangan' || S.mode === 'level'));
     $('#timer').classList.remove('low');
     $('#bar-fill').classList.remove('low');
+    stopQuestionTimer();
+    S.qTimes = [];
+    S.fastCount = 0;
+    S.qLimit = 0;
+    S.qPaused = 0;
+    if (S.mode === 'level') S.qTarget = speedTarget(S.level.tier, S.level.num);
     $('#feedback').textContent = '';
     $('#feedback').classList.remove('good');
     $('#score').textContent = '0';
@@ -985,12 +1017,74 @@
     } else {
       $('#q-count').textContent = S.answered ? S.answered + ' terjawab' : 'Ayo cepat!';
     }
+
+    S.qStart = Date.now();
+    startQuestionTimer();
+  }
+
+  function stopQuestionTimer() {
+    if (S.qTimeId) { clearInterval(S.qTimeId); S.qTimeId = null; }
+  }
+
+  function startQuestionTimer(remaining) {
+    stopQuestionTimer();
+    if (S.mode !== 'level' || S.finished) return;
+    if (!S.qLimit) S.qLimit = questionLimit(S.level.tier);
+    const rem = (typeof remaining === 'number') ? remaining : S.qLimit;
+    S.qTimeLeft = rem;
+    S.qStart = Date.now() - (S.qLimit - rem) * 1000;
+    $('#timer-num').textContent = Math.ceil(rem);
+    $('#timer').classList.remove('hidden');
+    $('#timer').classList.remove('low');
+    S.qTimeId = setInterval(() => {
+      S.qTimeLeft = Math.max(0, S.qLimit - (Date.now() - S.qStart) / 1000);
+      $('#timer-num').textContent = Math.ceil(S.qTimeLeft);
+      const low = S.qTimeLeft <= 3;
+      $('#timer').classList.toggle('low', low);
+      const c = Math.ceil(S.qTimeLeft);
+      if (low && c > 0 && c !== S.lastTick) { S.lastTick = c; sfx.tick(); }
+      if (S.qTimeLeft <= 0) timeoutAnswer();
+    }, 100);
+  }
+
+  function timeoutAnswer() {
+    if (S.lock || S.finished) return;
+    S.lock = true;
+    stopQuestionTimer();
+    const q = S.q;
+    $$('#options .option').forEach((b) => {
+      if (Number(b.textContent) === q.answer) b.classList.add('correct');
+      else b.classList.add('dim');
+    });
+    S.qTimes.push(S.qLimit);
+    S.wrong += 1;
+    S.streak = 0;
+    $('#streak').classList.add('hidden');
+    const fb = $('#feedback');
+    fb.classList.remove('good');
+    fb.textContent = '⏰ Waktu habis! ' + q.a + ' × ' + q.b + ' = ' + q.answer;
+    sfx.wrong();
+    buzz([60, 50, 60]);
+    S.answered += 1;
+    if (S.mode !== 'tantangan') {
+      $('#bar-fill').style.width = (S.answered / S.total * 100) + '%';
+    }
+    setTimeout(() => {
+      if (S.finished) return;
+      if (S.mode !== 'tantangan' && S.answered >= S.total) finish();
+      else nextQuestion();
+    }, 1300);
   }
 
   function answer(btn, val) {
     if (S.lock || S.finished) return;
     S.lock = true;
+    stopQuestionTimer();
     const q = S.q;
+    const dt = (Date.now() - S.qStart) / 1000;
+    S.qTimes.push(dt);
+    const fast = S.mode === 'level' && dt <= S.qTarget;
+    if (fast) S.fastCount += 1;
     const ok = (val === q.answer);
     const all = $$('#options .option');
 
@@ -1002,9 +1096,9 @@
       S.bestStreak = Math.max(S.bestStreak, S.streak);
       const base = S.mode === 'level' ? 10 + S.level.tier * 5 : (S.range === 20 ? 15 : 10);
       const bonus = Math.min(S.streak - 1, 5) * 2;
-      const pts = base + bonus;
+      const pts = base + bonus + (fast ? 5 : 0);
       S.score += pts;
-      popScore('+' + pts, btn);
+      popScore('+' + pts + (fast ? ' ⚡' : ''), btn);
       sfx.correct();
       buzz(35);
       const fb = $('#feedback');
@@ -1062,6 +1156,7 @@
     if (S.finished) return;
     S.finished = true;
     stopTimer();
+    stopQuestionTimer();
     buzz([30, 40, 30, 40, 60]);
 
     const answered = S.correct + S.wrong;
@@ -1076,14 +1171,18 @@
     const rankUp = rAfter.name !== rBefore.name;
 
     let emoji, title, primaryLabel, primaryFn, secondaryLabel, secondaryFn, note = null;
+    let earned = 0;
 
     if (S.mode === 'level') {
       const g = S.level.g;
       const pass = S.correct >= 7;
-      let earned = 0;
-      if (S.correct >= 9) earned = 3;
-      else if (S.correct === 8) earned = 2;
-      else if (pass) earned = 1;
+      if (pass) {
+        const speedPct = S.fastCount / Math.max(1, answered);
+        let sb = 0;
+        if (speedPct >= 0.6) sb += 1;
+        if (speedPct >= 0.9) sb += 1;
+        earned = Math.min(5, 1 + (S.correct - 7) + sb);
+      }
       const prev = S.stars[g] || 0;
       if (pass && earned > prev) {
         S.stars[g] = earned;
@@ -1092,7 +1191,7 @@
       const newlyUnlocked = pass && prev === 0 && g + 1 < TOTAL_LEVELS;
 
       if (pass) {
-        emoji = earned === 3 ? '🏆' : earned === 2 ? '🎉' : '👍';
+        emoji = earned === 5 ? '🏆' : earned >= 3 ? '🎉' : '👍';
         title = 'Level ' + fmtNum(S.level.num) + ' Berhasil!';
         if (g + 1 < TOTAL_LEVELS) {
           primaryLabel = 'Level Berikutnya ▶';
@@ -1104,7 +1203,8 @@
         secondaryLabel = 'Pilih Level';
         secondaryFn = () => openLevels(S.level.tier, true);
         if (newlyUnlocked) note = '🔓 Level berikutnya terbuka!';
-        else if (earned > prev) note = '⭐ Bintang bertambah!';
+        else if (earned === 5) note = '⚡ Super cepat — bintang 5!';
+        else if (earned > prev) note = '⭐ Bintang naik: ' + earned + '/5!';
       } else {
         emoji = '💪';
         title = 'Belum Berhasil';
@@ -1131,12 +1231,11 @@
     $('#result-emoji').textContent = emoji;
     $('#result-title').textContent = title;
 
-    /* bintang hanya untuk mode level yang lulus */
+    /* bintang 1-5 (mode level): akurasi + kecepatan menjawab */
     const rs = $('#result-stars');
-    if (S.mode === 'level' && S.correct >= 7) {
-      const earned = S.correct >= 9 ? 3 : (S.correct === 8 ? 2 : 1);
+    if (S.mode === 'level') {
       rs.innerHTML = '<span class="s-on">★</span>'.repeat(earned) +
-                     '<span class="s-off">★</span>'.repeat(3 - earned);
+                     '<span class="s-off">★</span>'.repeat(5 - earned);
       rs.classList.remove('hidden');
     } else {
       rs.classList.add('hidden');
@@ -1157,13 +1256,14 @@
       sfx.finish();
     }
 
+    const avg = S.qTimes.length ? S.qTimes.reduce((a, b) => a + b, 0) / S.qTimes.length : 0;
     const rows = [
       ['Skor', S.score],
       ['XP', '+' + gained],
       ['Benar', S.correct],
-      ['Salah', S.wrong],
       ['Akurasi', answered ? pct + '%' : '–'],
-      ['Streak 🔥', S.bestStreak]
+      ['Streak 🔥', S.bestStreak],
+      ['Waktu/soal', answered ? avg.toFixed(1).replace('.', ',') + ' dtk' : '–']
     ];
     $('#result-stats').innerHTML = rows
       .map((r) => '<div class="stat"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>')
@@ -1248,6 +1348,8 @@
     if (inQuiz) {
       if (modal.classList.contains('hidden')) {
         pendingExit = st;            // back pertama: tampilkan konfirmasi
+        if (S.qTimeId) S.qPaused = S.qTimeLeft;   // jeda timer soal selama dialog
+        stopQuestionTimer();
         modal.classList.remove('hidden');
       } else {
         modal.classList.add('hidden');   // back kedua: langsung keluar
@@ -1268,6 +1370,7 @@
     if (pendingExit) {
       try { history.pushState(S.quizNav, ''); navState = S.quizNav; } catch (e2) { /* diabaikan */ }
       pendingExit = null;
+      if (S.qPaused) { startQuestionTimer(S.qPaused); S.qPaused = 0; }   // lanjutkan waktu soal
     }
   });
 
@@ -1278,6 +1381,7 @@
       pendingExit = null;
       S.finished = true;
       stopTimer();
+      stopQuestionTimer();
       navState = st;
       displayState(st);
     }

@@ -1,7 +1,7 @@
 /* Service Worker — Kali 1–10
    Naikkan versi CACHE_NAME setiap kali mengubah file (index.html, ikon, dll)
    agar pengguna yang sudah install mendapat versi terbaru. */
-const CACHE_NAME = 'kali10-v5';
+const CACHE_NAME = 'kali10-v6';
 const ASSETS = [
   './',
   './index.html',

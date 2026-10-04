@@ -7,7 +7,7 @@ Game matematika perkalian bergaya **petualangan 3.500 level (35.000 soal)** deng
 - **🗺️ Mode Petualangan — 3.500 level / 35.000 soal** dalam 5 tingkat: Mudah 🟢 → Normal 🔵 → Sulit 🟠 → Ekstrim 🟣 → Tingkat Terakhir 🔴
 - **Setiap tingkat berisi 7.000 soal** (700 level × 10 soal), peta level berhalaman seperti game puzzle
 - **Level terbuka berurutan**: lulus level (≥7 benar dari 10 soal) untuk membuka level berikutnya; tingkat baru terbuka setelah 7.000 soal tingkat sebelumnya tuntas
-- **Bintang ⭐⭐⭐** per level: ★★★ = 9–10 benar, ★★ = 8 benar, ★ = 7 benar
+- **Bintang ⭐1–5 per level**: akurasi + kecepatan — setiap soal ada batas waktu, jawab cepat dapat bonus ⚡ dan bintang lebih tinggi; makin tinggi level, target waktu makin ketat
 - **🎓 Latihan Bebas**: pilih sendiri jangkauan (1–10 / 1–20), tabel, dan mode (Latihan / Tantangan 60 detik)
 - **10 tingkatan pangkat** seperti catur — naik dengan mengumpulkan XP
 - Skor + bonus streak 🔥, rekor tersimpan di perangkat
@@ -18,15 +18,17 @@ Game matematika perkalian bergaya **petualangan 3.500 level (35.000 soal)** deng
 
 ## Petualangan: isi tiap tingkat (700 level = 7.000 soal per tingkat)
 
-| Tingkat | Isi soal | Poin per jawaban benar |
-|---|---|---|
-| 🟢 Mudah | mulai 1–2 × 1–6, naik bertahap sampai 1–5 × 1–10 | 10 |
-| 🔵 Normal | mulai 2–6 × 2–6, naik sampai 2–10 × 2–10 | 15 |
-| 🟠 Sulit | mulai 3–9 × 3–9, naik sampai 3–12 × 3–15 | 20 |
-| 🟣 Ekstrim | mulai 8–12 × 8–12, naik sampai 8–20 × 8–20 | 25 |
-| 🔴 Tingkat Terakhir | mulai 12–16 × 12–16, naik sampai 12–25 × 12–25 | 30 |
+| Tingkat | Isi soal | Waktu/soal | Poin per benar |
+|---|---|---|---|
+| 🟢 Mudah | mulai 1–2 × 1–6, naik bertahap sampai 1–5 × 1–10 | 20 dtk | 10 |
+| 🔵 Normal | mulai 2–6 × 2–6, naik sampai 2–10 × 2–10 | 20 dtk | 15 |
+| 🟠 Sulit | mulai 3–9 × 3–9, naik sampai 3–12 × 3–15 | 25 dtk | 20 |
+| 🟣 Ekstrim | mulai 8–12 × 8–12, naik sampai 8–20 × 8–20 | 30 dtk | 25 |
+| 🔴 Tingkat Terakhir | mulai 12–16 × 12–16, naik sampai 12–25 × 12–25 | 35 dtk | 30 |
 
 Tiap level = 10 soal pilihan ganda. Level `n` dalam satu tingkat memakai rentang angka yang sedikit lebih luas dari level `n−1`, jadi kesulitan naik perlahan sepanjang 700 level. Peta level dibagi per halaman (50 level per halaman) dengan navigasi |◀ ◀ ▶ ▶| seperti game puzzle.
+
+**Cara mendapat bintang (skala 1–5):** dasar dari jumlah benar (7 benar = ★, 8 = ★★, 9 = ★★★, 10 = ★★★★) **plus bonus kecepatan** — jawab ≥60% soal dalam target waktu = +1★, ≥90% = +1★ lagi (maks ★★★★★). Target waktu per soal mengecil seiring nomor level bertambah (mis. Mudah: ±10 dtk di level awal → ±5 dtk di level 700), jadi ★5 makin sulit didapat di level tinggi. Jawab cepat juga memberi bonus poin +5 ⚡ per soal.
 
 ## Tingkatan pangkat
 
