@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Kali 1–10 · Game Perkalian</title>
+  <meta name="description" content="Game latihan perkalian 1 sampai 10. Bisa di-install di Android dan dimainkan offline.">
+  <meta name="color-scheme" content="dark">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kali 1–10">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --card: #1e293b; --card2: #334155; --border: #3b4b63;
+      --text: #f1f5f9; --muted: #94a3b8;
+      --accent: #6366f1; --accent2: #a855f7;
+      --green: #22c55e; --green-t: #4ade80;
+      --red: #ef4444; --red-t: #fca5a5; --orange: #fb923c;
+    }
+    html { height: 100%; }
+    body {
+      min-height: 100vh; min-height: 100dvh;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 600px at 15% -10%, rgba(79, 70, 229, .35), transparent 60%),
+        radial-gradient(800px 600px at 110% 110%, rgba(147, 51, 234, .28), transparent 55%),
+        linear-gradient(165deg, #0f172a 0%, #1e1b4b 100%);
+      background-attachment: fixed;
+      display: flex; justify-content: center;
+      user-select: none; -webkit-user-select: none;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+    }
+    #app { width: 100%; max-width: 460px; padding: 12px 16px calc(20px + env(safe-area-inset-bottom)); }
+    .screen {
+      display: none; flex-direction: column;
+      min-height: calc(100vh - 32px); min-height: calc(100dvh - 32px);
+    }
+    .screen.active { display: flex; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .hidden { display: none !important; }
+
+    /* ---------- Home ---------- */
+    .topbar { display: flex; justify-content: space-between; align-items: center; padding-top: calc(6px + env(safe-area-inset-top)); }
+    .logo {
+      width: 54px; height: 54px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 1.7rem; font-weight: 800;
+      box-shadow: 0 10px 24px rgba(99, 102, 241, .45);
+    }
+    .icon-btn {
+      width: 46px; height: 46px; border-radius: 13px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); font-size: 1.15rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:active { transform: scale(.94); }
+
+    h1 { margin-top: 20px; font-size: clamp(1.9rem, 7.5vw, 2.5rem); font-weight: 800; letter-spacing: -.01em; }
+    .subtitle { color: var(--muted); margin-top: 6px; margin-bottom: 18px; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
+    .card h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 12px; }
+
+    .chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .chip {
+      padding: 13px 0; border-radius: 12px;
+      background: var(--card2); border: 2px solid transparent;
+      color: var(--muted); font-size: 1.05rem; font-weight: 800; cursor: pointer;
+    }
+    .chip.sel {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; box-shadow: 0 6px 16px rgba(99, 102, 241, .4);
+    }
+    .chip.wide { grid-column: 1 / -1; font-size: .95rem; }
+
+    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+    .mode-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 18px 16px;
+      text-align: left; color: var(--text); cursor: pointer;
+    }
+    .mode-card:active { transform: scale(.97); }
+    .mode-card .ic { font-size: 1.9rem; }
+    .mode-card h3 { font-size: 1.08rem; margin: 8px 0 3px; }
+    .mode-card p { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+
+    .btn-install {
+      width: 100%; margin-top: 16px; padding: 15px; border-radius: 14px; cursor: pointer;
+      border: 2px dashed var(--accent); background: rgba(99, 102, 241, .14);
+      color: #c7d2fe; font-size: 1rem; font-weight: 700;
+    }
+    .best-info { margin-top: 14px; text-align: center; color: var(--muted); font-size: .88rem; }
+    .ios-hint { margin-top: 10px; text-align: center; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    .tip { margin-top: auto; padding-top: 18px; text-align: center; color: #64748b; font-size: .78rem; }
+
+    /* ---------- Kuis ---------- */
+    .quiz-top { display: flex; align-items: center; gap: 10px; padding-top: calc(6px + env(safe-area-inset-top)); }
+    #quiz-progress { flex: 1; height: 10px; border-radius: 6px; background: var(--card2); overflow: hidden; }
+    #bar-fill {
+      height: 100%; width: 0%; border-radius: 6px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .3s ease;
+    }
+    #bar-fill.low { background: var(--red); }
+    .timer {
+      flex: none; min-width: 64px; text-align: right;
+      font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums;
+    }
+    .timer.low { color: var(--red); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+    .quiz-stats {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 14px; color: var(--muted); font-size: .92rem; font-weight: 600;
+    }
+    #score { color: var(--green-t); font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+    .streak { color: var(--orange); font-weight: 800; }
+
+    .question {
+      flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
+      font-size: clamp(2.7rem, 12vw, 4.3rem); font-weight: 800; line-height: 1.1;
+    }
+    .qmark { color: #818cf8; }
+
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .option {
+      padding: 20px 0; border-radius: 16px;
+      background: var(--card); border: 2px solid var(--border);
+      color: var(--text); font-size: 1.65rem; font-weight: 800; cursor: pointer;
+      transition: transform .08s ease, background .15s ease, opacity .2s;
+    }
+    .option:active { transform: scale(.96); }
+    .option.correct { background: var(--green); border-color: var(--green); color: #fff; animation: pop .3s ease; }
+    .option.wrong { background: var(--red); border-color: var(--red); color: #fff; animation: shake .4s ease; }
+    .option.dim { opacity: .4; }
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.07); } 100% { transform: scale(1); } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); } 40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); } 80% { transform: translateX(5px); }
+    }
+
+    #feedback {
+      min-height: 34px; margin-top: 12px; text-align: center;
+      font-weight: 700; font-size: 1.05rem; color: var(--red-t);
+    }
+    #feedback.good { color: var(--green-t); }
+
+    .pop {
+      position: fixed; z-index: 60; pointer-events: none;
+      color: var(--green-t); font-size: 1.5rem; font-weight: 800;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, .45);
+      animation: floatUp .9s ease-out forwards;
+    }
+    @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -72px); } }
+
+    /* ---------- Hasil ---------- */
+    #screen-result { justify-content: center; align-items: center; text-align: center; }
+    .result-emoji { font-size: 4.2rem; }
+    #screen-result h2 { margin-top: 8px; font-size: 1.6rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 6px; width: 100%; }
+    .stat {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 13px 6px; display: flex; flex-direction: column; gap: 5px; align-items: center;
+    }
+    .stat span { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .stat b { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+    .new-record { margin: 10px 0 4px; color: #fbbf24; font-weight: 800; font-size: 1.05rem; animation: pop .4s ease; }
+    .btn-primary {
+      width: 100%; margin-top: 14px; padding: 16px; border: none; border-radius: 14px; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 1.05rem; font-weight: 700;
+      box-shadow: 0 10px 24px rgba(99, 102, 241, .4);
+    }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-secondary {
+      width: 100%; margin-top: 10px; padding: 15px; border-radius: 14px; cursor: pointer;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); font-size: 1rem; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+
+    <section id="screen-home" class="screen active">
+      <div class="topbar">
+        <div class="logo">✕</div>
+        <button id="btn-mute" class="icon-btn" aria-label="Hidupkan atau matikan suara">🔊</button>
+      </div>
+      <h1>Kali 1–10</h1>
+      <p class="subtitle">Latihan perkalian seru — pilih tabel lalu mulai!</p>
+
+      <div class="card">
+        <h2>Pilih tabel perkalian</h2>
+        <div class="chips" id="table-chips"></div>
+      </div>
+
+      <div class="modes">
+        <button id="mode-latihan" class="mode-card">
+          <div class="ic">📝</div>
+          <h3>Latihan</h3>
+          <p>10 soal, tanpa waktu. Cocok untuk belajar.</p>
+        </button>
+        <button id="mode-tantangan" class="mode-card">
+          <div class="ic">⚡</div>
+          <h3>Tantangan</h3>
+          <p>60 detik! Jawab sebanyak mungkin.</p>
+        </button>
+      </div>
+
+      <button id="btn-install" class="btn-install hidden">⬇️&nbsp; Install Aplikasi</button>
+      <p id="best-info" class="best-info"></p>
+      <p id="ios-hint" class="ios-hint hidden">Di iPhone: ketuk tombol <b>Bagikan</b> → <b>Tambahkan ke Layar Utama</b>.</p>
+
+      <p class="tip">💡 Setelah di-install, game bisa dimainkan tanpa internet.</p>
+    </section>
+
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-top">
+        <button id="btn-exit" class="icon-btn" aria-label="Keluar dari kuis">✕</button>
+        <div id="quiz-progress"><div id="bar-fill"></div></div>
+        <div id="timer" class="timer hidden"><span id="timer-num">60</span>s</div>
+      </div>
+      <div class="quiz-stats">
+        <span id="q-count">Soal 1/10</span>
+        <span id="streak" class="streak hidden">🔥 0</span>
+        <span id="score">0</span>
+      </div>
+      <div class="question" id="question"></div>
+      <div class="options" id="options"></div>
+      <div id="feedback"></div>
+    </section>
+
+    <section id="screen-result" class="screen">
+      <div class="result-emoji" id="result-emoji">🎉</div>
+      <h2 id="result-title">Selesai!</h2>
+      <div class="stats-grid" id="result-stats"></div>
+      <p id="new-record" class="new-record hidden">🏆 Rekor Baru!</p>
+      <button id="btn-again" class="btn-primary">Main Lagi</button>
+      <button id="btn-menu" class="btn-secondary">Menu Utama</button>
+    </section>
+
+  </div>
+
+  <script>
+  'use strict';
+
+  const $  = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+  /* ---------- penyimpanan kecil (localStorage) ---------- */
+  const store = {
+    get(key, fallback) {
+      try { const v = localStorage.getItem('kali10:' + key); return v === null ? fallback : JSON.parse(v); }
+      catch (e) { return fallback; }
+    },
+    set(key, value) {
+      try { localStorage.setItem('kali10:' + key, JSON.stringify(value)); } catch (e) { /* diabaikan */ }
+    }
+  };
+
+  /* ---------- state ---------- */
+  const S = {
+    table: store.get('table', 'all'),
+    mode: null,
+    answered: 0,
+    total: 10,
+    score: 0,
+    correct: 0,
+    wrong: 0,
+    streak: 0,
+    bestStreak: 0,
+    lastQ: '',
+    lastTick: 0,
+    lock: false,
+    finished: false,
+    timeId: null,
+    q: null,
+    muted: store.get('muted', false)
+  };
+
+  const screens = { home: $('#screen-home'), quiz: $('#screen-quiz'), result: $('#screen-result') };
+
+  function show(name) {
+    Object.keys(screens).forEach((k) => screens[k].classList.toggle('active', k === name));
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- suara (Web Audio, tanpa file eksternal) ---------- */
+  let audioCtx = null;
+  function tone(freq, dur, when = 0, type = 'sine', vol = 0.16) {
+    if (S.muted) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const t = audioCtx.currentTime + when;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + dur + 0.06);
+    } catch (e) { /* audio opsional */ }
+  }
+  const sfx = {
+    correct() { tone(660, 0.10); tone(880, 0.16, 0.09); },
+    wrong()   { tone(196, 0.22, 0, 'sawtooth', 0.12); },
+    tick()    { tone(520, 0.05, 0, 'square', 0.05); },
+    finish()  { tone(523, 0.12); tone(659, 0.12, 0.12); tone(784, 0.22, 0.24); }
+  };
+  function buzz(pattern) {
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { /* opsional */ }
+  }
+
+  /* ---------- util ---------- */
+  const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  /* ---------- layar home ---------- */
+  function buildChips() {
+    const wrap = $('#table-chips');
+    const mkChip = (label, val, wide) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (wide ? ' wide' : '');
+      b.textContent = label;
+      if (String(S.table) === String(val)) b.classList.add('sel');
+      b.addEventListener('click', () => {
+        S.table = val;
+        store.set('table', val);
+        $$('.chip').forEach((c) => c.classList.remove('sel'));
+        b.classList.add('sel');
+        tone(700, 0.05, 0, 'sine', 0.06);
+      });
+      wrap.appendChild(b);
+    };
+    for (let i = 1; i <= 10; i++) mkChip(String(i), i, false);
+    mkChip('Semua (campur 1–10)', 'all', true);
+  }
+
+  function bestOf(mode) { return store.get('best:' + mode, 0); }
+  function updateBestInfo() {
+    const l = bestOf('latihan'), t = bestOf('tantangan');
+    $('#best-info').textContent =
+      (l || t) ? 'Rekor · Latihan: ' + (l || '–') + ' · Tantangan: ' + (t || '–')
+               : 'Belum ada rekor — ayo main!';
+  }
+
+  /* ---------- kuis ---------- */
+  function startQuiz(mode) {
+    S.mode = mode;
+    S.answered = 0;
+    S.score = 0; S.correct = 0; S.wrong = 0;
+    S.streak = 0; S.bestStreak = 0;
+    S.lastQ = ''; S.lastTick = 0;
+    S.lock = false; S.finished = false;
+    S.total = mode === 'latihan' ? 10 : 0;
+
+    $('#streak').classList.add('hidden');
+    $('#timer').classList.toggle('hidden', mode !== 'tantangan');
+    $('#timer').classList.remove('low');
+    $('#bar-fill').classList.remove('low');
+    $('#feedback').textContent = '';
+    $('#feedback').classList.remove('good');
+    $('#score').textContent = '0';
+
+    stopTimer();
+    if (mode === 'tantangan') {
+      const endAt = Date.now() + 60000;
+      $('#bar-fill').style.width = '100%';
+      $('#timer-num').textContent = '60';
+      S.timeId = setInterval(() => {
+        const left = Math.max(0, endAt - Date.now());
+        const secs = left / 1000;
+        $('#timer-num').textContent = Math.ceil(secs);
+        $('#bar-fill').style.width = (left / 600) + '%';
+        const low = secs <= 10;
+        $('#timer').classList.toggle('low', low);
+        $('#bar-fill').classList.toggle('low', low);
+        const c = Math.ceil(secs);
+        if (secs <= 5 && c > 0 && c !== S.lastTick) { S.lastTick = c; sfx.tick(); }
+        if (left <= 0) finish();
+      }, 100);
+    } else {
+      $('#bar-fill').style.width = '0%';
+    }
+
+    show('quiz');
+    nextQuestion();
+  }
+
+  function stopTimer() {
+    if (S.timeId) { clearInterval(S.timeId); S.timeId = null; }
+  }
+
+  function makeQuestion() {
+    let a, b, key, guard = 0;
+    do {
+      a = S.table === 'all' ? randInt(1, 10) : S.table;
+      b = randInt(1, 10);
+      key = a + '×' + b;
+      guard++;
+    } while (key === S.lastQ && guard < 20);
+    S.lastQ = key;
+    return { a: a, b: b, answer: a * b };
+  }
+
+  function makeOptions(q) {
+    const set = new Set([q.answer]);
+    const pool = [];
+    const push = (v) => { if (v > 0 && v !== q.answer) pool.push(v); };
+    push((q.a + 1) * q.b);
+    if (q.a > 1) push((q.a - 1) * q.b);
+    push(q.a * (q.b + 1));
+    if (q.b > 1) push(q.a * (q.b - 1));
+    push(q.answer + q.b);
+    push(q.answer - q.b);
+    push(q.answer + 1);
+    push(q.answer - 1);
+    push(q.answer + 10);
+    push(q.answer - 10);
+    shuffle(pool);
+    for (const v of pool) {
+      if (set.size >= 4) break;
+      if (!set.has(v)) set.add(v);
+    }
+    let guard = 0;
+    while (set.size < 4 && guard++ < 100) {
+      const v = q.answer + randInt(-12, 12);
+      if (v > 0 && !set.has(v)) set.add(v);
+    }
+    return shuffle(Array.from(set));
+  }
+
+  function nextQuestion() {
+    if (S.finished) return;
+    S.lock = false;
+    S.q = makeQuestion();
+    $('#question').innerHTML = S.q.a + ' × ' + S.q.b + ' <span class="qmark">= ?</span>';
+
+    const wrap = $('#options');
+    wrap.innerHTML = '';
+    makeOptions(S.q).forEach((v) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'option';
+      b.textContent = v;
+      b.addEventListener('click', () => answer(b, v));
+      wrap.appendChild(b);
+    });
+
+    const fb = $('#feedback');
+    fb.textContent = '';
+    fb.classList.remove('good');
+
+    if (S.mode === 'latihan') {
+      $('#q-count').textContent = 'Soal ' + Math.min(S.answered + 1, S.total) + '/' + S.total;
+    } else {
+      $('#q-count').textContent = S.answered ? S.answered + ' terjawab' : 'Ayo cepat!';
+    }
+  }
+
+  function answer(btn, val) {
+    if (S.lock || S.finished) return;
+    S.lock = true;
+    const q = S.q;
+    const ok = (val === q.answer);
+    const all = $$('#options .option');
+
+    if (ok) {
+      btn.classList.add('correct');
+      all.forEach((b) => { if (b !== btn) b.classList.add('dim'); });
+      S.correct += 1;
+      S.streak += 1;
+      S.bestStreak = Math.max(S.bestStreak, S.streak);
+      const bonus = Math.min(S.streak - 1, 5) * 2;
+      const pts = 10 + bonus;
+      S.score += pts;
+      popScore('+' + pts, btn);
+      sfx.correct();
+      buzz(35);
+      const fb = $('#feedback');
+      fb.classList.add('good');
+      if (S.streak >= 5) fb.textContent = 'Hebat! ' + S.streak + '× beruntun 🔥';
+      else if (S.streak >= 3) fb.textContent = 'Mantap! 🔥';
+    } else {
+      btn.classList.add('wrong');
+      all.forEach((b) => {
+        if (Number(b.textContent) === q.answer) b.classList.add('correct');
+        else if (b !== btn) b.classList.add('dim');
+      });
+      S.wrong += 1;
+      S.streak = 0;
+      const fb = $('#feedback');
+      fb.classList.remove('good');
+      fb.textContent = q.a + ' × ' + q.b + ' = ' + q.answer;
+      sfx.wrong();
+      buzz([60, 50, 60]);
+    }
+
+    if (S.streak >= 3) {
+      $('#streak').textContent = '🔥 ' + S.streak;
+      $('#streak').classList.remove('hidden');
+    } else {
+      $('#streak').classList.add('hidden');
+    }
+    $('#score').textContent = S.score;
+
+    S.answered += 1;
+    if (S.mode === 'latihan') {
+      $('#bar-fill').style.width = (S.answered / S.total * 100) + '%';
+    }
+
+    setTimeout(() => {
+      if (S.finished) return;
+      if (S.mode === 'latihan' && S.answered >= S.total) finish();
+      else nextQuestion();
+    }, ok ? 620 : 1500);
+  }
+
+  function popScore(text, anchor) {
+    const el = document.createElement('div');
+    el.className = 'pop';
+    el.textContent = text;
+    const r = anchor.getBoundingClientRect();
+    el.style.left = (r.left + r.width / 2) + 'px';
+    el.style.top = (r.top + 4) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 950);
+  }
+
+  function finish() {
+    if (S.finished) return;
+    S.finished = true;
+    stopTimer();
+    sfx.finish();
+    buzz([30, 40, 30, 40, 60]);
+
+    const answered = S.correct + S.wrong;
+    const pct = answered ? Math.round(S.correct / answered * 100) : 0;
+    const best = bestOf(S.mode);
+    const isRecord = S.score > best && S.score > 0;
+    if (isRecord) store.set('best:' + S.mode, S.score);
+
+    $('#result-emoji').textContent = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '💪';
+    $('#result-title').textContent = S.mode === 'tantangan' ? 'Waktu Habis!' : 'Latihan Selesai!';
+    $('#new-record').classList.toggle('hidden', !isRecord);
+
+    const rows = [
+      ['Skor', S.score],
+      ['Benar', S.correct],
+      ['Salah', S.wrong],
+      ['Akurasi', answered ? pct + '%' : '–'],
+      ['Streak 🔥', S.bestStreak],
+      ['Rekor', Math.max(best, S.score)]
+    ];
+    $('#result-stats').innerHTML = rows
+      .map((r) => '<div class="stat"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>')
+      .join('');
+
+    updateBestInfo();
+    show('result');
+  }
+
+  function exitQuiz() {
+    S.finished = true;
+    stopTimer();
+    updateBestInfo();
+    show('home');
+  }
+
+  /* ---------- tombol & interaksi ---------- */
+  $('#btn-mute').textContent = S.muted ? '🔇' : '🔊';
+  $('#btn-mute').addEventListener('click', () => {
+    S.muted = !S.muted;
+    store.set('muted', S.muted);
+    $('#btn-mute').textContent = S.muted ? '🔇' : '🔊';
+    if (!S.muted) tone(700, 0.07);
+  });
+
+  $('#mode-latihan').addEventListener('click', () => startQuiz('latihan'));
+  $('#mode-tantangan').addEventListener('click', () => startQuiz('tantangan'));
+  $('#btn-exit').addEventListener('click', exitQuiz);
+  $('#btn-again').addEventListener('click', () => startQuiz(S.mode || 'latihan'));
+  $('#btn-menu').addEventListener('click', () => { updateBestInfo(); show('home'); });
+
+  document.addEventListener('keydown', (e) => {
+    if (!screens.quiz.classList.contains('active')) return;
+    if (e.key >= '1' && e.key <= '4') {
+      const b = $$('#options .option')[Number(e.key) - 1];
+      if (b) b.click();
+    } else if (e.key === 'Escape') {
+      exitQuiz();
+    }
+  });
+
+  buildChips();
+  updateBestInfo();
+
+  /* ---------- install PWA ---------- */
+  const btnInstall = $('#btn-install');
+  let deferredPrompt = null;
+  const isStandalone = () =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!isStandalone()) btnInstall.classList.remove('hidden');
+  });
+
+  btnInstall.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    try {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+    } catch (err) { /* diabaikan */ }
+    deferredPrompt = null;
+    btnInstall.classList.add('hidden');
+  });
+
+  window.addEventListener('appinstalled', () => btnInstall.classList.add('hidden'));
+  if (isStandalone()) btnInstall.classList.add('hidden');
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIOS && !isStandalone()) $('#ios-hint').classList.remove('hidden');
+
+  /* ---------- service worker (offline) — aktif di https / localhost ---------- */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      const ok = location.protocol === 'https:' ||
+        ['localhost', '127.0.0.1'].indexOf(location.hostname) !== -1;
+      if (ok) navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+  </script>
+</body>
+</html>
