@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>Kali 1–10 · Game Perkalian</title>
-  <meta name="description" content="Game latihan perkalian 1 sampai 10. Bisa di-install di Android dan dimainkan offline.">
+  <title>Kali Master · Game Perkalian 1–25</title>
+  <meta name="description" content="Game latihan perkalian dengan 3.500 level (35.000 soal) dari Mudah sampai Tingkat Terakhir, pangkat naik seperti catur. Bisa di-install di Android dan dimainkan offline.">
   <meta name="color-scheme" content="dark">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
@@ -13,7 +13,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Kali 1–10">
+  <meta name="apple-mobile-web-app-title" content="Kali Master">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
@@ -21,7 +21,7 @@
       --text: #f1f5f9; --muted: #94a3b8;
       --accent: #6366f1; --accent2: #a855f7;
       --green: #22c55e; --green-t: #4ade80;
-      --red: #ef4444; --red-t: #fca5a5; --orange: #fb923c;
+      --red: #ef4444; --red-t: #fca5a5; --orange: #fb923c; --gold: #fbbf24;
     }
     html { height: 100%; }
     body {
@@ -47,28 +47,89 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
     .hidden { display: none !important; }
 
-    /* ---------- Home ---------- */
-    .topbar { display: flex; justify-content: space-between; align-items: center; padding-top: calc(6px + env(safe-area-inset-top)); }
+    /* ---------- elemen umum ---------- */
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: calc(6px + env(safe-area-inset-top)); }
     .logo {
-      width: 54px; height: 54px; border-radius: 16px;
+      width: 54px; height: 54px; border-radius: 16px; flex: none;
       display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff; font-size: 1.7rem; font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #7c3aed 55%, #a855f7);
+      color: #fff; font-weight: 900;
       box-shadow: 0 10px 24px rgba(99, 102, 241, .45);
     }
+    .logo-eq { font-size: 1.02rem; white-space: nowrap; letter-spacing: -.02em; }
+    .logo-eq i { font-style: normal; color: #fde047; padding: 0 1px; }
     .icon-btn {
-      width: 46px; height: 46px; border-radius: 13px;
+      width: 46px; height: 46px; border-radius: 13px; flex: none;
       background: var(--card); border: 1px solid var(--border);
-      color: var(--text); font-size: 1.15rem; cursor: pointer;
+      color: var(--text); font-size: 1.1rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
     }
     .icon-btn:active { transform: scale(.94); }
+    .screen-title { flex: 1; text-align: center; font-weight: 800; font-size: 1.1rem; }
+    .star-total {
+      flex: none; background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 10px 14px; font-weight: 800; font-size: .88rem;
+    }
 
-    h1 { margin-top: 20px; font-size: clamp(1.9rem, 7.5vw, 2.5rem); font-weight: 800; letter-spacing: -.01em; }
-    .subtitle { color: var(--muted); margin-top: 6px; margin-bottom: 18px; }
+    h1 { margin-top: 18px; font-size: clamp(1.9rem, 7.5vw, 2.5rem); font-weight: 800; letter-spacing: -.01em; }
+    .subtitle { color: var(--muted); margin-top: 6px; margin-bottom: 16px; }
+    .big-title { margin-top: 20px; text-align: center; font-size: 1.6rem; font-weight: 800; }
+    .center { text-align: center; }
 
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
     .card h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 12px; }
+    .card + .card, .modes { margin-top: 14px; }
+
+    /* ---------- kartu pangkat ---------- */
+    .rank-card {
+      display: flex; gap: 14px; align-items: center;
+      background: linear-gradient(135deg, rgba(99, 102, 241, .28), rgba(168, 85, 247, .16));
+      border: 1px solid var(--border); border-radius: 18px; padding: 14px 16px;
+    }
+    .rank-icon {
+      font-size: 2.1rem; width: 58px; height: 58px; flex: none;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, .28); border-radius: 14px;
+    }
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name { font-weight: 800; font-size: 1.12rem; }
+    .rank-xp { color: var(--muted); font-size: .8rem; margin: 2px 0 7px; }
+    .rank-bar { height: 8px; background: var(--card2); border-radius: 5px; overflow: hidden; }
+    #rank-fill { height: 100%; width: 0%; border-radius: 5px; background: linear-gradient(90deg, var(--gold), #f59e0b); transition: width .4s ease; }
+    .rank-next { color: var(--muted); font-size: .74rem; margin-top: 6px; }
+
+    /* ---------- tombol menu home ---------- */
+    .btn-adventure {
+      width: 100%; margin-top: 16px; border: none; border-radius: 18px; padding: 18px;
+      cursor: pointer; text-align: left; color: #fff;
+      background: linear-gradient(135deg, #059669, #10b981);
+      box-shadow: 0 10px 24px rgba(16, 185, 129, .35);
+    }
+    .btn-adventure:active { transform: scale(.98); }
+    .adv-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .btn-adventure .t { font-size: 1.25rem; font-weight: 800; }
+    #adv-stars { background: rgba(0, 0, 0, .22); padding: 7px 13px; border-radius: 20px; font-weight: 800; font-size: .85rem; flex: none; }
+    .btn-adventure .sub { font-size: .8rem; opacity: .92; margin-top: 5px; }
+    .btn-free {
+      width: 100%; margin-top: 12px; border-radius: 18px; padding: 16px 18px; cursor: pointer;
+      text-align: left; background: var(--card); border: 1px solid var(--border); color: var(--text);
+    }
+    .btn-free:active { transform: scale(.98); }
+    .btn-free .t { font-weight: 800; font-size: 1.05rem; }
+    .btn-free .sub { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+
+    /* ---------- pilihan jangkauan (latihan bebas) ---------- */
+    .seg { display: flex; gap: 6px; background: var(--card2); border-radius: 12px; padding: 5px; }
+    .seg-btn {
+      flex: 1; padding: 11px 0; border: none; border-radius: 9px;
+      background: transparent; color: var(--muted);
+      font-weight: 800; font-size: .95rem; cursor: pointer;
+    }
+    .seg-btn.sel {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, .4);
+    }
+    .seg-note { margin-top: 10px; font-size: .75rem; color: var(--muted); text-align: center; }
 
     .chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
     .chip {
@@ -82,7 +143,7 @@
     }
     .chip.wide { grid-column: 1 / -1; font-size: .95rem; }
 
-    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+    .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .mode-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 18px; padding: 18px 16px;
@@ -100,9 +161,57 @@
     }
     .best-info { margin-top: 14px; text-align: center; color: var(--muted); font-size: .88rem; }
     .ios-hint { margin-top: 10px; text-align: center; color: var(--muted); font-size: .82rem; line-height: 1.5; }
-    .tip { margin-top: auto; padding-top: 18px; text-align: center; color: #64748b; font-size: .78rem; }
+    .tip { margin-top: auto; padding-top: 18px; text-align: center; color: #64748b; font-size: .78rem; line-height: 1.5; }
 
-    /* ---------- Kuis ---------- */
+    /* ---------- daftar tingkat (petualangan) ---------- */
+    .tiers { margin-top: 18px; }
+    .tier-btn {
+      display: block; width: 100%; text-align: left; border: none; border-radius: 16px;
+      padding: 16px 18px; margin-bottom: 12px; color: #fff; cursor: pointer;
+      position: relative; box-shadow: 0 8px 18px rgba(0, 0, 0, .25);
+    }
+    .tier-btn:active { transform: scale(.98); }
+    .t-green  { background: linear-gradient(135deg, #34d399, #059669); }
+    .t-blue   { background: linear-gradient(135deg, #22d3ee, #0284c7); }
+    .t-orange { background: linear-gradient(135deg, #fbbf24, #d97706); }
+    .t-purple { background: linear-gradient(135deg, #c084fc, #7e22ce); }
+    .t-red    { background: linear-gradient(135deg, #f87171, #b91c1c); }
+    .tier-btn.locked { filter: grayscale(.75) brightness(.55); }
+    .tier-name { font-size: 1.18rem; font-weight: 800; }
+    .tier-sub { display: block; font-size: .78rem; opacity: .9; margin-top: 3px; padding-right: 86px; }
+    .tier-prog {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      background: rgba(0, 0, 0, .28); padding: 8px 13px; border-radius: 20px;
+      font-weight: 800; font-size: .92rem; white-space: nowrap;
+    }
+
+    /* ---------- peta level (berhalaman) ---------- */
+    .levels-progress { margin-top: 18px; text-align: center; color: var(--muted); font-size: .95rem; font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; margin-top: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 8px; }
+    .pager button {
+      width: 46px; height: 40px; border-radius: 10px; flex: none;
+      background: var(--card2); border: none; color: var(--text);
+      font-weight: 800; font-size: 1rem; cursor: pointer;
+    }
+    .pager button:active { transform: scale(.94); }
+    .pg-label { flex: 1; text-align: center; font-weight: 700; color: var(--muted); font-size: .9rem; }
+    .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px 8px; margin-top: 14px; }
+    .level-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; padding: 0; }
+    .level-circle {
+      width: 100%; max-width: 54px; aspect-ratio: 1 / 1; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .95rem;
+    }
+    .lvl-passed .level-circle { background: linear-gradient(135deg, #34d399, #059669); color: #fff; box-shadow: 0 5px 12px rgba(16, 185, 129, .35); }
+    .lvl-open .level-circle {
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+      animation: glowPulse 1.6s infinite;
+    }
+    .lvl-locked .level-circle { background: var(--card2); border: 2px dashed #475569; font-size: .85rem; }
+    .lvl-stars { font-size: .68rem; letter-spacing: 2px; height: 13px; color: var(--gold); }
+    @keyframes glowPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, .55); } 50% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); } }
+
+    /* ---------- kuis ---------- */
     .quiz-top { display: flex; align-items: center; gap: 10px; padding-top: calc(6px + env(safe-area-inset-top)); }
     #quiz-progress { flex: 1; height: 10px; border-radius: 6px; background: var(--card2); overflow: hidden; }
     #bar-fill {
@@ -120,14 +229,14 @@
 
     .quiz-stats {
       display: flex; justify-content: space-between; align-items: center;
-      margin-top: 14px; color: var(--muted); font-size: .92rem; font-weight: 600;
+      margin-top: 14px; color: var(--muted); font-size: .9rem; font-weight: 600;
     }
     #score { color: var(--green-t); font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
     .streak { color: var(--orange); font-weight: 800; }
 
     .question {
       flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;
-      font-size: clamp(2.7rem, 12vw, 4.3rem); font-weight: 800; line-height: 1.1;
+      font-size: clamp(2.5rem, 11vw, 4rem); font-weight: 800; line-height: 1.1;
     }
     .qmark { color: #818cf8; }
 
@@ -135,7 +244,7 @@
     .option {
       padding: 20px 0; border-radius: 16px;
       background: var(--card); border: 2px solid var(--border);
-      color: var(--text); font-size: 1.65rem; font-weight: 800; cursor: pointer;
+      color: var(--text); font-size: 1.55rem; font-weight: 800; cursor: pointer;
       transition: transform .08s ease, background .15s ease, opacity .2s;
     }
     .option:active { transform: scale(.96); }
@@ -163,10 +272,13 @@
     }
     @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -72px); } }
 
-    /* ---------- Hasil ---------- */
+    /* ---------- hasil ---------- */
     #screen-result { justify-content: center; align-items: center; text-align: center; }
     .result-emoji { font-size: 4.2rem; }
     #screen-result h2 { margin-top: 8px; font-size: 1.6rem; }
+    .result-stars { margin-top: 10px; font-size: 2.3rem; letter-spacing: 8px; }
+    .result-stars .s-on { color: var(--gold); }
+    .result-stars .s-off { color: #475569; }
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 6px; width: 100%; }
     .stat {
       background: var(--card); border: 1px solid var(--border); border-radius: 14px;
@@ -174,15 +286,17 @@
     }
     .stat span { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
     .stat b { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
-    .new-record { margin: 10px 0 4px; color: #fbbf24; font-weight: 800; font-size: 1.05rem; animation: pop .4s ease; }
+    .result-rank { margin: 10px 0 0; font-weight: 800; font-size: 1rem; color: #c7d2fe; }
+    .result-rank.up { color: var(--gold); font-size: 1.1rem; animation: pop .4s ease; }
+    .new-record { margin: 8px 0 0; color: var(--gold); font-weight: 800; font-size: 1.05rem; }
     .btn-primary {
-      width: 100%; margin-top: 14px; padding: 16px; border: none; border-radius: 14px; cursor: pointer;
+      width: 100%; margin-top: 16px; padding: 16px; border: none; border-radius: 14px; cursor: pointer;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #fff; font-size: 1.05rem; font-weight: 700;
       box-shadow: 0 10px 24px rgba(99, 102, 241, .4);
     }
     .btn-primary:active { transform: scale(.98); }
-    .btn-secondary {
+    .btn-secondary, .btn-tertiary {
       width: 100%; margin-top: 10px; padding: 15px; border-radius: 14px; cursor: pointer;
       background: var(--card); border: 1px solid var(--border);
       color: var(--text); font-size: 1rem; font-weight: 600;
@@ -192,19 +306,94 @@
 <body>
   <div id="app">
 
+    <!-- ================= HOME ================= -->
     <section id="screen-home" class="screen active">
       <div class="topbar">
-        <div class="logo">✕</div>
+        <div class="logo"><span class="logo-eq">2<i>×</i>3</span></div>
         <button id="btn-mute" class="icon-btn" aria-label="Hidupkan atau matikan suara">🔊</button>
       </div>
-      <h1>Kali 1–10</h1>
-      <p class="subtitle">Latihan perkalian seru — pilih tabel lalu mulai!</p>
+      <h1>Kali Master</h1>
+      <p class="subtitle">Petualangan perkalian — 3.500 level, 35.000 soal!</p>
 
+      <div class="rank-card">
+        <div class="rank-icon" id="rank-icon">🐣</div>
+        <div class="rank-info">
+          <div class="rank-name" id="rank-name">Pemula</div>
+          <div class="rank-xp" id="rank-xp">0 XP</div>
+          <div class="rank-bar"><div id="rank-fill"></div></div>
+          <div class="rank-next" id="rank-next"></div>
+        </div>
+      </div>
+
+      <button id="btn-adventure" class="btn-adventure">
+        <div class="adv-row">
+          <span class="t">🗺️ Mulai Petualangan</span>
+          <span id="adv-stars">⭐ 0/10.500</span>
+        </div>
+        <div class="sub" id="adv-sub">50 level menanti — mulai dari Level 1!</div>
+      </button>
+
+      <button id="btn-free" class="btn-free">
+        <div class="t">🎓 Latihan Bebas</div>
+        <div class="sub">Pilih sendiri tabel &amp; mode — ada mode Tantangan 60 detik</div>
+      </button>
+
+      <button id="btn-install" class="btn-install hidden">⬇️&nbsp; Install Aplikasi</button>
+      <p id="ios-hint" class="ios-hint hidden">Di iPhone: ketuk tombol <b>Bagikan</b> → <b>Tambahkan ke Layar Utama</b>.</p>
+
+      <p class="tip">💡 Lulus level (≥7 benar) untuk membuka level berikutnya.<br>Kumpulkan bintang &amp; XP sampai Grand Master!</p>
+    </section>
+
+    <!-- ================= TINGKAT (PETUALANGAN) ================= -->
+    <section id="screen-tiers" class="screen">
+      <div class="topbar">
+        <button id="btn-tiers-back" class="icon-btn" aria-label="Kembali">◀</button>
+        <div class="screen-title">Petualangan</div>
+        <div class="star-total" id="star-total">⭐ 0</div>
+      </div>
+      <h2 class="big-title">Pilih Tingkat</h2>
+      <p class="subtitle center">Setiap tingkat berisi 7.000 soal.<br>Selesaikan semuanya untuk membuka tingkat berikutnya!</p>
+      <div class="tiers" id="tier-list"></div>
+    </section>
+
+    <!-- ================= PETA LEVEL ================= -->
+    <section id="screen-levels" class="screen">
+      <div class="topbar">
+        <button id="btn-levels-back" class="icon-btn" aria-label="Kembali">◀</button>
+        <div class="screen-title" id="levels-title">Mudah</div>
+        <div style="width:46px; flex:none;"></div>
+      </div>
+      <p class="levels-progress" id="levels-progress"></p>
+      <div class="pager">
+        <button id="pg-first" aria-label="Halaman pertama">|◀</button>
+        <button id="pg-prev" aria-label="Halaman sebelumnya">◀</button>
+        <span class="pg-label" id="pg-label">1 / 14</span>
+        <button id="pg-next" aria-label="Halaman berikutnya">▶</button>
+        <button id="pg-last" aria-label="Halaman terakhir">▶|</button>
+      </div>
+      <div class="level-grid" id="level-grid"></div>
+      <p class="tip">Lulus = minimal 7 jawaban benar dari 10 soal.<br>★★★ = 9–10 benar · ★★ = 8 benar · ★ = 7 benar</p>
+    </section>
+
+    <!-- ================= LATIHAN BEBAS ================= -->
+    <section id="screen-free" class="screen">
+      <div class="topbar">
+        <button id="btn-free-back" class="icon-btn" aria-label="Kembali">◀</button>
+        <div class="screen-title">Latihan Bebas</div>
+        <div style="width:46px; flex:none;"></div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h2>Pilih jangkauan</h2>
+        <div class="seg" id="range-seg">
+          <button type="button" class="seg-btn sel" data-range="10">Perkalian 1–10</button>
+          <button type="button" class="seg-btn" data-range="20">Perkalian 1–20</button>
+        </div>
+        <p class="seg-note">Jangkauan 1–20 memberi poin lebih besar: 15 per jawaban benar (1–10: 10 poin).</p>
+      </div>
       <div class="card">
         <h2>Pilih tabel perkalian</h2>
         <div class="chips" id="table-chips"></div>
       </div>
-
       <div class="modes">
         <button id="mode-latihan" class="mode-card">
           <div class="ic">📝</div>
@@ -217,14 +406,10 @@
           <p>60 detik! Jawab sebanyak mungkin.</p>
         </button>
       </div>
-
-      <button id="btn-install" class="btn-install hidden">⬇️&nbsp; Install Aplikasi</button>
       <p id="best-info" class="best-info"></p>
-      <p id="ios-hint" class="ios-hint hidden">Di iPhone: ketuk tombol <b>Bagikan</b> → <b>Tambahkan ke Layar Utama</b>.</p>
-
-      <p class="tip">💡 Setelah di-install, game bisa dimainkan tanpa internet.</p>
     </section>
 
+    <!-- ================= KUIS ================= -->
     <section id="screen-quiz" class="screen">
       <div class="quiz-top">
         <button id="btn-exit" class="icon-btn" aria-label="Keluar dari kuis">✕</button>
@@ -241,13 +426,17 @@
       <div id="feedback"></div>
     </section>
 
+    <!-- ================= HASIL ================= -->
     <section id="screen-result" class="screen">
       <div class="result-emoji" id="result-emoji">🎉</div>
       <h2 id="result-title">Selesai!</h2>
+      <div class="result-stars hidden" id="result-stars"></div>
       <div class="stats-grid" id="result-stats"></div>
-      <p id="new-record" class="new-record hidden">🏆 Rekor Baru!</p>
-      <button id="btn-again" class="btn-primary">Main Lagi</button>
-      <button id="btn-menu" class="btn-secondary">Menu Utama</button>
+      <p id="result-rank" class="result-rank"></p>
+      <p id="new-record" class="new-record hidden"></p>
+      <button id="btn-primary" class="btn-primary">Main Lagi</button>
+      <button id="btn-secondary" class="btn-secondary">Menu Utama</button>
+      <button id="btn-tertiary" class="btn-tertiary hidden">🏠 Menu Utama</button>
     </section>
 
   </div>
@@ -269,10 +458,70 @@
     }
   };
 
+  /* ---------- pangkat (seperti catur) — skala XP besar ---------- */
+  const RANKS = [
+    { min: 0,      name: 'Pemula',       icon: '🐣' },
+    { min: 500,    name: 'Pion',         icon: '♟️' },
+    { min: 2500,   name: 'Kuda',         icon: '🐴' },
+    { min: 7500,   name: 'Benteng',      icon: '🏰' },
+    { min: 20000,  name: 'Gajah',        icon: '🐘' },
+    { min: 45000,  name: 'Menteri',      icon: '👸' },
+    { min: 90000,  name: 'Calon Master', icon: '🎖️' },
+    { min: 180000, name: 'Master',       icon: '🥈' },
+    { min: 350000, name: 'Master Besar', icon: '🥇' },
+    { min: 600000, name: 'Grand Master', icon: '👑' }
+  ];
+  function rankOf(xp) {
+    let r = RANKS[0];
+    for (const t of RANKS) { if (xp >= t.min) r = t; }
+    return r;
+  }
+  function nextRank(xp) {
+    for (const t of RANKS) { if (xp < t.min) return t; }
+    return null;
+  }
+  const fmtNum = (n) => n.toLocaleString('id-ID');
+  function pctStr(part, total) {
+    const p = part / total * 100;
+    const v = p >= 10 ? Math.round(p) : Math.round(p * 10) / 10;
+    return String(v).replace('.', ',') + '%';
+  }
+
+  /* ---------- definisi tingkat & level petualangan ----------
+     5 tingkat × 700 level × 10 soal = 7.000 soal per tingkat
+     (total 3.500 level / 35.000 soal) */
+  const SOAL_PER_LEVEL = 10;
+  const LEVELS_PER_TIER = 700;
+  const SOAL_PER_TIER = LEVELS_PER_TIER * SOAL_PER_LEVEL;   // 7.000
+  const TIER_DEFS = [
+    { name: 'Mudah',            cls: 't-green',  desc: 'Perkalian kecil — sampai 5 × 10',  aMin: 1,  bMin: 1, lerpA: [2, 5],   lerpB: [6, 10] },
+    { name: 'Normal',           cls: 't-blue',   desc: 'Tabel 2–10 — sampai 10 × 10',      aMin: 2,  bMin: 2, lerpA: [6, 10],  lerpB: [6, 10] },
+    { name: 'Sulit',            cls: 't-orange', desc: 'Tabel 3–15 — sampai 12 × 15',      aMin: 3,  bMin: 3, lerpA: [9, 12],  lerpB: [9, 15] },
+    { name: 'Ekstrim',          cls: 't-purple', desc: 'Tabel 8–20 — sampai 20 × 20',      aMin: 8,  bMin: 8, lerpA: [12, 20], lerpB: [12, 20] },
+    { name: 'Tingkat Terakhir', cls: 't-red',    desc: 'Tabel 12–25 — sampai 25 × 25',     aMin: 12, bMin: 12, lerpA: [16, 25], lerpB: [16, 25] }
+  ];
+  const TOTAL_LEVELS = TIER_DEFS.length * LEVELS_PER_TIER;  // 3.500
+  const GRID_COLS = 5;
+  const PAGE_SIZE = GRID_COLS * 10;                          // 50 level per halaman
+
+  function levelConfig(tier, lvl) { // lvl: 1..700
+    const t = TIER_DEFS[tier];
+    const f = (lvl - 0.5) / LEVELS_PER_TIER;
+    const la = t.lerpA, lb = t.lerpB;
+    return {
+      aMin: t.aMin, aMax: Math.max(t.aMin + 1, Math.round(la[0] + (la[1] - la[0]) * f)),
+      bMin: t.bMin, bMax: Math.max(t.bMin + 1, Math.round(lb[0] + (lb[1] - lb[0]) * f))
+    };
+  }
+
   /* ---------- state ---------- */
   const S = {
-    table: store.get('table', 'all'),
-    mode: null,
+    range: store.get('range', 10),        // latihan bebas: 10 atau 20
+    table: store.get('table', 'all'),     // latihan bebas: 1..20 atau 'all'
+    mode: null,                           // 'level' | 'latihan' | 'tantangan'
+    level: null,                          // { g, tier, num, cfg } untuk mode level
+    viewTier: 0,
+    viewPage: 0,
     answered: 0,
     total: 10,
     score: 0,
@@ -286,14 +535,50 @@
     finished: false,
     timeId: null,
     q: null,
+    act: null,
     muted: store.get('muted', false)
   };
 
-  const screens = { home: $('#screen-home'), quiz: $('#screen-quiz'), result: $('#screen-result') };
+  /* bintang per level (0 = belum lulus; 1-3 = lulus) — unlock berantai */
+  let starsRaw = store.get('stars', null);
+  if (!Array.isArray(starsRaw)) starsRaw = [];
+  if (starsRaw.length < TOTAL_LEVELS) {
+    starsRaw = starsRaw.concat(new Array(TOTAL_LEVELS - starsRaw.length).fill(0));
+  } else if (starsRaw.length > TOTAL_LEVELS) {
+    starsRaw = starsRaw.slice(0, TOTAL_LEVELS);
+  }
+  S.stars = starsRaw;
+
+  /* migrasi rekor versi lama (sebelum ada jangkauan) */
+  ['latihan', 'tantangan'].forEach((m) => {
+    const legacy = store.get('best:' + m, null);
+    if (legacy !== null && store.get('best:' + m + ':r10', null) === null) {
+      store.set('best:' + m + ':r10', legacy);
+    }
+  });
+
+  const screens = {
+    home: $('#screen-home'), tiers: $('#screen-tiers'), levels: $('#screen-levels'),
+    free: $('#screen-free'), quiz: $('#screen-quiz'), result: $('#screen-result')
+  };
 
   function show(name) {
     Object.keys(screens).forEach((k) => screens[k].classList.toggle('active', k === name));
     window.scrollTo(0, 0);
+  }
+
+  function totalStars() { return S.stars.reduce((a, b) => a + b, 0); }
+  function countTierPassed(tier) {
+    let n = 0;
+    for (let i = 0; i < LEVELS_PER_TIER; i++) { if (S.stars[tier * LEVELS_PER_TIER + i] > 0) n++; }
+    return n;
+  }
+  function tierUnlocked(tier) {
+    if (tier === 0) return true;
+    return countTierPassed(tier - 1) === LEVELS_PER_TIER;
+  }
+  function levelUnlocked(g) {
+    return g === 0 || S.stars[g - 1] > 0;
   }
 
   /* ---------- suara (Web Audio, tanpa file eksternal) ---------- */
@@ -321,6 +606,8 @@
     correct() { tone(660, 0.10); tone(880, 0.16, 0.09); },
     wrong()   { tone(196, 0.22, 0, 'sawtooth', 0.12); },
     tick()    { tone(520, 0.05, 0, 'square', 0.05); },
+    locked()  { tone(180, 0.12, 0, 'sawtooth', 0.08); },
+    rankup()  { tone(523, 0.12); tone(659, 0.12, 0.12); tone(784, 0.12, 0.24); tone(1047, 0.25, 0.36); },
     finish()  { tone(523, 0.12); tone(659, 0.12, 0.12); tone(784, 0.22, 0.24); }
   };
   function buzz(pattern) {
@@ -338,8 +625,129 @@
   }
 
   /* ---------- layar home ---------- */
+  function updateRankUI() {
+    const xp = store.get('xp', 0);
+    const r = rankOf(xp);
+    const nxt = nextRank(xp);
+    const idx = RANKS.indexOf(r) + 1;
+    $('#rank-icon').textContent = r.icon;
+    $('#rank-name').textContent = r.name;
+    $('#rank-xp').textContent = fmtNum(xp) + ' XP · Tingkat ' + idx + '/' + RANKS.length;
+    if (nxt) {
+      const span = nxt.min - r.min;
+      const done = xp - r.min;
+      $('#rank-fill').style.width = Math.min(100, Math.round(done / span * 100)) + '%';
+      $('#rank-next').textContent = fmtNum(nxt.min - xp) + ' XP lagi menuju ' + nxt.icon + ' ' + nxt.name;
+    } else {
+      $('#rank-fill').style.width = '100%';
+      $('#rank-next').textContent = 'Tingkat tertinggi tercapai! 👑';
+    }
+  }
+
+  function updateAdventure() {
+    const ts = totalStars();
+    $('#adv-stars').textContent = '⭐ ' + fmtNum(ts) + '/' + fmtNum(TOTAL_LEVELS * 3);
+    $('#star-total').textContent = '⭐ ' + fmtNum(ts);
+    const passed = S.stars.filter((s) => s > 0).length;
+    if (passed >= TOTAL_LEVELS) {
+      $('#adv-sub').textContent = 'Semua ' + fmtNum(TOTAL_LEVELS) + ' level selesai! 🎉 Kamu legenda!';
+    } else {
+      const tier = TIER_DEFS[Math.floor(passed / LEVELS_PER_TIER)].name;
+      const num = passed % LEVELS_PER_TIER + 1;
+      const remaining = (TOTAL_LEVELS - passed) * SOAL_PER_LEVEL;
+      $('#adv-sub').textContent = 'Lanjut ke Level ' + fmtNum(num) + ' · ' + tier +
+        ' · sisa ' + fmtNum(remaining) + ' soal';
+    }
+  }
+
+  /* ---------- layar tingkat ---------- */
+  function openTiers() {
+    buildTierList();
+    show('tiers');
+  }
+  function buildTierList() {
+    const wrap = $('#tier-list');
+    wrap.innerHTML = '';
+    $('#star-total').textContent = '⭐ ' + fmtNum(totalStars());
+    TIER_DEFS.forEach((t, i) => {
+      const unlocked = tierUnlocked(i);
+      const done = countTierPassed(i);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tier-btn ' + t.cls + (unlocked ? '' : ' locked');
+      b.innerHTML =
+        '<span class="tier-name">' + (unlocked ? '' : '🔒 ') + t.name + '</span>' +
+        '<span class="tier-sub">' + t.desc + (unlocked ? '' : ' — selesaikan tingkat sebelumnya dulu') + '</span>' +
+        '<span class="tier-prog">' + (unlocked ? fmtNum(done) + ' / ' + fmtNum(LEVELS_PER_TIER) : '🔒') + '</span>';
+      b.addEventListener('click', () => {
+        if (unlocked) openLevels(i);
+        else { sfx.locked(); buzz(60); }
+      });
+      wrap.appendChild(b);
+    });
+  }
+
+  /* ---------- layar peta level (berhalaman) ---------- */
+  function openLevels(tier) {
+    S.viewTier = tier;
+    S.viewPage = Math.min(Math.floor(countTierPassed(tier) / PAGE_SIZE),
+                          Math.ceil(LEVELS_PER_TIER / PAGE_SIZE) - 1);
+    buildLevelGrid();
+    show('levels');
+  }
+  function buildLevelGrid() {
+    const tier = S.viewTier;
+    const pages = Math.ceil(LEVELS_PER_TIER / PAGE_SIZE);
+    S.viewPage = Math.max(0, Math.min(S.viewPage, pages - 1));
+    $('#levels-title').textContent = TIER_DEFS[tier].name;
+    const passed = countTierPassed(tier);
+    $('#levels-progress').textContent =
+      'Soal Terselesaikan: ' + fmtNum(passed * SOAL_PER_LEVEL) + ' / ' + fmtNum(SOAL_PER_TIER) +
+      ' (' + pctStr(passed * SOAL_PER_LEVEL, SOAL_PER_TIER) + ')';
+    $('#pg-label').textContent = (S.viewPage + 1) + ' / ' + pages;
+
+    const grid = $('#level-grid');
+    grid.innerHTML = '';
+    const start = S.viewPage * PAGE_SIZE;
+    for (let i = 0; i < PAGE_SIZE; i++) {
+      const num = start + i + 1;
+      if (num > LEVELS_PER_TIER) break;
+      const g = tier * LEVELS_PER_TIER + num - 1;
+      const st = S.stars[g] || 0;
+      const unlocked = levelUnlocked(g);
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'level-cell ' + (!unlocked ? 'lvl-locked' : (st > 0 ? 'lvl-passed' : 'lvl-open'));
+      let starHtml = '';
+      if (st > 0) {
+        starHtml = '<span class="s-on">★</span>'.repeat(st) + '<span class="s-off">★</span>'.repeat(3 - st);
+      }
+      cell.innerHTML =
+        '<span class="level-circle">' + (unlocked ? num : '🔒') + '</span>' +
+        '<span class="lvl-stars">' + starHtml + '</span>';
+      cell.addEventListener('click', () => {
+        if (unlocked) startLevel(g);
+        else { sfx.locked(); buzz(60); }
+      });
+      grid.appendChild(cell);
+    }
+  }
+  function flipPage(dir) {
+    const pages = Math.ceil(LEVELS_PER_TIER / PAGE_SIZE);
+    const before = S.viewPage;
+    S.viewPage = Math.max(0, Math.min(S.viewPage + dir, pages - 1));
+    if (S.viewPage !== before) { buildLevelGrid(); tone(600, 0.04, 0, 'sine', 0.05); }
+  }
+  $('#pg-first').addEventListener('click', () => { S.viewPage = 0; buildLevelGrid(); });
+  $('#pg-last').addEventListener('click', () => { S.viewPage = Math.ceil(LEVELS_PER_TIER / PAGE_SIZE) - 1; buildLevelGrid(); });
+  $('#pg-prev').addEventListener('click', () => flipPage(-1));
+  $('#pg-next').addEventListener('click', () => flipPage(1));
+
+  /* ---------- latihan bebas: jangkauan & tabel ---------- */
   function buildChips() {
     const wrap = $('#table-chips');
+    wrap.innerHTML = '';
+    if (S.table !== 'all' && S.table > S.range) S.table = 'all';
     const mkChip = (label, val, wide) => {
       const b = document.createElement('button');
       b.type = 'button';
@@ -355,30 +763,40 @@
       });
       wrap.appendChild(b);
     };
-    for (let i = 1; i <= 10; i++) mkChip(String(i), i, false);
-    mkChip('Semua (campur 1–10)', 'all', true);
+    for (let i = 1; i <= S.range; i++) mkChip(String(i), i, false);
+    mkChip('Semua (campur 1–' + S.range + ')', 'all', true);
   }
 
-  function bestOf(mode) { return store.get('best:' + mode, 0); }
+  function setRange(r) {
+    S.range = r;
+    store.set('range', r);
+    $$('#range-seg .seg-btn').forEach((b) =>
+      b.classList.toggle('sel', Number(b.dataset.range) === r));
+    buildChips();
+    updateBestInfo();
+    tone(700, 0.05, 0, 'sine', 0.06);
+  }
+  $$('#range-seg .seg-btn').forEach((b) =>
+    b.addEventListener('click', () => setRange(Number(b.dataset.range))));
+
+  function bestOf(mode) { return store.get('best:' + mode + ':r' + S.range, 0); }
   function updateBestInfo() {
     const l = bestOf('latihan'), t = bestOf('tantangan');
     $('#best-info').textContent =
-      (l || t) ? 'Rekor · Latihan: ' + (l || '–') + ' · Tantangan: ' + (t || '–')
+      (l || t) ? 'Rekor 1–' + S.range + ' · Latihan: ' + (l || '–') + ' · Tantangan: ' + (t || '–')
                : 'Belum ada rekor — ayo main!';
   }
 
-  /* ---------- kuis ---------- */
-  function startQuiz(mode) {
-    S.mode = mode;
+  /* ---------- kuis: persiapan ---------- */
+  function prepQuiz() {
     S.answered = 0;
     S.score = 0; S.correct = 0; S.wrong = 0;
     S.streak = 0; S.bestStreak = 0;
     S.lastQ = ''; S.lastTick = 0;
     S.lock = false; S.finished = false;
-    S.total = mode === 'latihan' ? 10 : 0;
 
     $('#streak').classList.add('hidden');
-    $('#timer').classList.toggle('hidden', mode !== 'tantangan');
+    $('#timer').classList.toggle('hidden', S.mode !== 'tantangan');
     $('#timer').classList.remove('low');
     $('#bar-fill').classList.remove('low');
     $('#feedback').textContent = '';
@@ -386,7 +804,7 @@
     $('#score').textContent = '0';
 
     stopTimer();
-    if (mode === 'tantangan') {
+    if (S.mode === 'tantangan') {
       const endAt = Date.now() + 60000;
       $('#bar-fill').style.width = '100%';
       $('#timer-num').textContent = '60';
@@ -410,18 +828,42 @@
     nextQuestion();
   }
 
+  function startFree(mode) {
+    S.mode = mode;
+    S.level = null;
+    S.total = mode === 'latihan' ? 10 : 0;
+    prepQuiz();
+  }
+
+  function startLevel(g) {
+    const tier = Math.floor(g / LEVELS_PER_TIER);
+    const num = g % LEVELS_PER_TIER + 1;
+    S.mode = 'level';
+    S.level = { g: g, tier: tier, num: num, cfg: levelConfig(tier, num) };
+    S.total = SOAL_PER_LEVEL;
+    prepQuiz();
+  }
+
   function stopTimer() {
     if (S.timeId) { clearInterval(S.timeId); S.timeId = null; }
   }
 
   function makeQuestion() {
+    let aMin, aMax, bMin, bMax;
+    if (S.mode === 'level') {
+      const c = S.level.cfg;
+      aMin = c.aMin; aMax = c.aMax; bMin = c.bMin; bMax = c.bMax;
+    } else {
+      aMin = 1; aMax = S.range; bMin = 1; bMax = S.range;
+      if (S.table !== 'all') { aMin = S.table; aMax = S.table; }
+    }
     let a, b, key, guard = 0;
     do {
-      a = S.table === 'all' ? randInt(1, 10) : S.table;
-      b = randInt(1, 10);
+      a = randInt(aMin, aMax);
+      b = randInt(bMin, bMax);
       key = a + '×' + b;
       guard++;
-    } while (key === S.lastQ && guard < 20);
+    } while (key === S.lastQ && guard < 25);
     S.lastQ = key;
     return { a: a, b: b, answer: a * b };
   }
@@ -474,7 +916,10 @@
     fb.textContent = '';
     fb.classList.remove('good');
 
-    if (S.mode === 'latihan') {
+    if (S.mode === 'level') {
+      $('#q-count').textContent = 'Lv ' + fmtNum(S.level.num) + ' · Soal ' +
+        Math.min(S.answered + 1, S.total) + '/' + S.total;
+    } else if (S.mode === 'latihan') {
       $('#q-count').textContent = 'Soal ' + Math.min(S.answered + 1, S.total) + '/' + S.total;
     } else {
       $('#q-count').textContent = S.answered ? S.answered + ' terjawab' : 'Ayo cepat!';
@@ -494,8 +939,9 @@
       S.correct += 1;
       S.streak += 1;
       S.bestStreak = Math.max(S.bestStreak, S.streak);
+      const base = S.mode === 'level' ? 10 + S.level.tier * 5 : (S.range === 20 ? 15 : 10);
       const bonus = Math.min(S.streak - 1, 5) * 2;
-      const pts = 10 + bonus;
+      const pts = base + bonus;
       S.score += pts;
       popScore('+' + pts, btn);
       sfx.correct();
@@ -528,13 +974,13 @@
     $('#score').textContent = S.score;
 
     S.answered += 1;
-    if (S.mode === 'latihan') {
+    if (S.mode !== 'tantangan') {
       $('#bar-fill').style.width = (S.answered / S.total * 100) + '%';
     }
 
     setTimeout(() => {
       if (S.finished) return;
-      if (S.mode === 'latihan' && S.answered >= S.total) finish();
+      if (S.mode !== 'tantangan' && S.answered >= S.total) finish();
       else nextQuestion();
     }, ok ? 620 : 1500);
   }
@@ -550,44 +996,146 @@
     setTimeout(() => el.remove(), 950);
   }
 
+  /* ---------- hasil ---------- */
   function finish() {
     if (S.finished) return;
     S.finished = true;
     stopTimer();
-    sfx.finish();
     buzz([30, 40, 30, 40, 60]);
 
     const answered = S.correct + S.wrong;
     const pct = answered ? Math.round(S.correct / answered * 100) : 0;
-    const best = bestOf(S.mode);
-    const isRecord = S.score > best && S.score > 0;
-    if (isRecord) store.set('best:' + S.mode, S.score);
 
-    $('#result-emoji').textContent = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '💪';
-    $('#result-title').textContent = S.mode === 'tantangan' ? 'Waktu Habis!' : 'Latihan Selesai!';
-    $('#new-record').classList.toggle('hidden', !isRecord);
+    /* XP & pangkat */
+    const xpBefore = store.get('xp', 0);
+    const gained = S.score;
+    store.set('xp', xpBefore + gained);
+    const rBefore = rankOf(xpBefore);
+    const rAfter = rankOf(xpBefore + gained);
+    const rankUp = rAfter.name !== rBefore.name;
+
+    let emoji, title, primaryLabel, primaryFn, secondaryLabel, secondaryFn, note = null;
+
+    if (S.mode === 'level') {
+      const g = S.level.g;
+      const pass = S.correct >= 7;
+      let earned = 0;
+      if (S.correct >= 9) earned = 3;
+      else if (S.correct === 8) earned = 2;
+      else if (pass) earned = 1;
+      const prev = S.stars[g] || 0;
+      if (pass && earned > prev) {
+        S.stars[g] = earned;
+        store.set('stars', S.stars);
+      }
+      const newlyUnlocked = pass && prev === 0 && g + 1 < TOTAL_LEVELS;
+
+      if (pass) {
+        emoji = earned === 3 ? '🏆' : earned === 2 ? '🎉' : '👍';
+        title = 'Level ' + fmtNum(S.level.num) + ' Berhasil!';
+        if (g + 1 < TOTAL_LEVELS) {
+          primaryLabel = 'Level Berikutnya ▶';
+          primaryFn = () => startLevel(g + 1);
+        } else {
+          primaryLabel = '🎉 Tingkat Tuntas!';
+          primaryFn = () => openTiers();
+        }
+        secondaryLabel = 'Pilih Level';
+        secondaryFn = () => openLevels(S.level.tier);
+        if (newlyUnlocked) note = '🔓 Level berikutnya terbuka!';
+        else if (earned > prev) note = '⭐ Bintang bertambah!';
+      } else {
+        emoji = '💪';
+        title = 'Belum Berhasil';
+        note = 'Butuh minimal 7 benar — kamu ' + S.correct + '. Coba lagi!';
+        primaryLabel = 'Coba Lagi 🔁';
+        primaryFn = () => startLevel(g);
+        secondaryLabel = 'Pilih Level';
+        secondaryFn = () => openLevels(S.level.tier);
+      }
+    } else {
+      const best = bestOf(S.mode);
+      const isRecord = S.score > best && S.score > 0;
+      if (isRecord) store.set('best:' + S.mode + ':r' + S.range, S.score);
+
+      emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '💪';
+      title = S.mode === 'tantangan' ? 'Waktu Habis!' : 'Latihan Selesai!';
+      primaryLabel = 'Main Lagi';
+      primaryFn = () => startFree(S.mode);
+      secondaryLabel = 'Menu Utama';
+      secondaryFn = goHome;
+      if (isRecord) note = '🏆 Rekor Baru!';
+    }
+
+    $('#result-emoji').textContent = emoji;
+    $('#result-title').textContent = title;
+
+    /* bintang hanya untuk mode level yang lulus */
+    const rs = $('#result-stars');
+    if (S.mode === 'level' && S.correct >= 7) {
+      const earned = S.correct >= 9 ? 3 : (S.correct === 8 ? 2 : 1);
+      rs.innerHTML = '<span class="s-on">★</span>'.repeat(earned) +
+                     '<span class="s-off">★</span>'.repeat(3 - earned);
+      rs.classList.remove('hidden');
+    } else {
+      rs.classList.add('hidden');
+    }
+
+    const nr = $('#new-record');
+    if (note) { nr.textContent = note; nr.classList.remove('hidden'); }
+    else nr.classList.add('hidden');
+
+    const rr = $('#result-rank');
+    if (rankUp) {
+      rr.textContent = '🎉 Naik Tingkat: ' + rAfter.icon + ' ' + rAfter.name + '!';
+      rr.classList.add('up');
+      sfx.rankup();
+    } else {
+      rr.textContent = 'Pangkat: ' + rAfter.icon + ' ' + rAfter.name;
+      rr.classList.remove('up');
+      sfx.finish();
+    }
 
     const rows = [
       ['Skor', S.score],
+      ['XP', '+' + gained],
       ['Benar', S.correct],
       ['Salah', S.wrong],
       ['Akurasi', answered ? pct + '%' : '–'],
-      ['Streak 🔥', S.bestStreak],
-      ['Rekor', Math.max(best, S.score)]
+      ['Streak 🔥', S.bestStreak]
     ];
     $('#result-stats').innerHTML = rows
       .map((r) => '<div class="stat"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>')
       .join('');
 
+    S.act = {
+      primary: primaryFn,
+      secondary: secondaryFn,
+      tertiary: S.mode === 'level' ? goHome : null
+    };
+    $('#btn-primary').textContent = primaryLabel;
+    $('#btn-secondary').textContent = secondaryLabel;
+    $('#btn-tertiary').classList.toggle('hidden', S.mode !== 'level');
+
     updateBestInfo();
     show('result');
+  }
+
+  function goHome() {
+    updateRankUI();
+    updateAdventure();
+    show('home');
   }
 
   function exitQuiz() {
     S.finished = true;
     stopTimer();
-    updateBestInfo();
-    show('home');
+    if (S.mode === 'level' && S.level) {
+      openLevels(S.level.tier);
+    } else {
+      updateBestInfo();
+      show('free');
+    }
   }
 
   /* ---------- tombol & interaksi ---------- */
@@ -599,11 +1147,19 @@
     if (!S.muted) tone(700, 0.07);
   });
 
-  $('#mode-latihan').addEventListener('click', () => startQuiz('latihan'));
-  $('#mode-tantangan').addEventListener('click', () => startQuiz('tantangan'));
+  $('#btn-adventure').addEventListener('click', openTiers);
+  $('#btn-free').addEventListener('click', () => { updateBestInfo(); show('free'); });
+  $('#btn-tiers-back').addEventListener('click', goHome);
+  $('#btn-levels-back').addEventListener('click', openTiers);
+  $('#btn-free-back').addEventListener('click', goHome);
+
+  $('#mode-latihan').addEventListener('click', () => startFree('latihan'));
+  $('#mode-tantangan').addEventListener('click', () => startFree('tantangan'));
   $('#btn-exit').addEventListener('click', exitQuiz);
-  $('#btn-again').addEventListener('click', () => startQuiz(S.mode || 'latihan'));
-  $('#btn-menu').addEventListener('click', () => { updateBestInfo(); show('home'); });
+
+  $('#btn-primary').addEventListener('click', () => { if (S.act && S.act.primary) S.act.primary(); });
+  $('#btn-secondary').addEventListener('click', () => { if (S.act && S.act.secondary) S.act.secondary(); });
+  $('#btn-tertiary').addEventListener('click', () => { if (S.act && S.act.tertiary) S.act.tertiary(); });
 
   document.addEventListener('keydown', (e) => {
     if (!screens.quiz.classList.contains('active')) return;
@@ -615,8 +1171,13 @@
     }
   });
 
+  /* init */
+  $$('#range-seg .seg-btn').forEach((b) =>
+    b.classList.toggle('sel', Number(b.dataset.range) === S.range));
   buildChips();
   updateBestInfo();
+  updateRankUI();
+  updateAdventure();
 
   /* ---------- install PWA ---------- */
   const btnInstall = $('#btn-install');
