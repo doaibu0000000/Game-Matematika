@@ -13,6 +13,7 @@ Game matematika perkalian bergaya **petualangan 3.500 level (35.000 soal)** deng
 - Skor + bonus streak 🔥, rekor tersimpan di perangkat
 - Efek suara (Web Audio, tanpa file) dan getar (vibrasi HP)
 - PWA lengkap: manifest + service worker → bisa di-install & offline
+- **Tombol back HP bekerja per layar** (peta → tingkat → menu); keluar di tengah kuis lewat konfirmasi dulu
 - Murni HTML + CSS + JavaScript, **tanpa framework dan tanpa build step**
 
 ## Petualangan: isi tiap tingkat (700 level = 7.000 soal per tingkat)

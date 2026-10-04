@@ -301,6 +301,24 @@
       background: var(--card); border: 1px solid var(--border);
       color: var(--text); font-size: 1rem; font-weight: 600;
     }
+
+    /* ---------- dialog konfirmasi keluar kuis ---------- */
+    .modal {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(2, 6, 23, .72);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-box {
+      width: 100%; max-width: 320px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+      padding: 20px; text-align: center; animation: pop .25s ease;
+    }
+    .modal-title { font-size: 1.15rem; font-weight: 800; }
+    .modal-text { margin-top: 6px; color: var(--muted); font-size: .9rem; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .modal-btn { flex: 1; padding: 13px 0; border-radius: 12px; border: none; font-weight: 800; font-size: .95rem; cursor: pointer; }
+    .modal-btn.no { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+    .modal-btn.yes { background: linear-gradient(135deg, var(--red), #b91c1c); color: #fff; }
   </style>
 </head>
 <body>
@@ -439,6 +457,18 @@
       <button id="btn-tertiary" class="btn-tertiary hidden">🏠 Menu Utama</button>
     </section>
 
+    <!-- ================= KONFIRMASI KELUAR KUIS ================= -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-box">
+        <p class="modal-title">Keluar dari kuis?</p>
+        <p class="modal-text">Progres ronde ini akan hilang.</p>
+        <div class="modal-actions">
+          <button id="modal-no" type="button" class="modal-btn no">Batal</button>
+          <button id="modal-yes" type="button" class="modal-btn yes">Ya, Keluar</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -567,6 +597,39 @@
     window.scrollTo(0, 0);
   }
 
+  /* ---------- navigasi (dukung tombol back HP) ----------
+     Setiap perpindahan layar dicatat ke riwayat browser, sehingga
+     tombol back di HP berpindah layar mundur, bukan langsung keluar. */
+  let navState = { screen: 'home' };
+
+  function navTo(state, replace) {
+    navState = state;
+    displayState(state);
+    try {
+      if (replace) history.replaceState(state, '');
+      else history.pushState(state, '');
+    } catch (e) { /* diabaikan */ }
+  }
+
+  function displayState(st) {
+    if (st.screen === 'home') {
+      updateRankUI();
+      updateAdventure();
+    } else if (st.screen === 'tiers') {
+      buildTierList();
+    } else if (st.screen === 'levels') {
+      S.viewTier = st.tier;
+      S.viewPage = Math.min(Math.floor(countTierPassed(st.tier) / PAGE_SIZE),
+                            Math.ceil(LEVELS_PER_TIER / PAGE_SIZE) - 1);
+      buildLevelGrid();
+    } else if (st.screen === 'free') {
+      updateBestInfo();
+    }
+    show(st.screen);
+  }
+
+  function openFree() { navTo({ screen: 'free' }); }
+
   function totalStars() { return S.stars.reduce((a, b) => a + b, 0); }
   function countTierPassed(tier) {
     let n = 0;
@@ -661,9 +724,8 @@
   }
 
   /* ---------- layar tingkat ---------- */
-  function openTiers() {
-    buildTierList();
-    show('tiers');
+  function openTiers(replace) {
+    navTo({ screen: 'tiers' }, replace);
   }
   function buildTierList() {
     const wrap = $('#tier-list');
@@ -688,12 +750,8 @@
   }
 
   /* ---------- layar peta level (berhalaman) ---------- */
-  function openLevels(tier) {
-    S.viewTier = tier;
-    S.viewPage = Math.min(Math.floor(countTierPassed(tier) / PAGE_SIZE),
-                          Math.ceil(LEVELS_PER_TIER / PAGE_SIZE) - 1);
-    buildLevelGrid();
-    show('levels');
+  function openLevels(tier, replace) {
+    navTo({ screen: 'levels', tier: tier }, replace);
   }
   function buildLevelGrid() {
     const tier = S.viewTier;
@@ -824,24 +882,27 @@
       $('#bar-fill').style.width = '0%';
     }
 
-    show('quiz');
     nextQuestion();
   }
 
-  function startFree(mode) {
+  function startFree(mode, replace) {
     S.mode = mode;
     S.level = null;
     S.total = mode === 'latihan' ? 10 : 0;
+    S.quizNav = { screen: 'quiz', from: mode };
     prepQuiz();
+    navTo(S.quizNav, replace);
   }
 
-  function startLevel(g) {
+  function startLevel(g, replace) {
     const tier = Math.floor(g / LEVELS_PER_TIER);
     const num = g % LEVELS_PER_TIER + 1;
     S.mode = 'level';
     S.level = { g: g, tier: tier, num: num, cfg: levelConfig(tier, num) };
     S.total = SOAL_PER_LEVEL;
+    S.quizNav = { screen: 'quiz', from: 'level', tier: tier };
     prepQuiz();
+    navTo(S.quizNav, replace);
   }
 
   function stopTimer() {
@@ -1035,13 +1096,13 @@
         title = 'Level ' + fmtNum(S.level.num) + ' Berhasil!';
         if (g + 1 < TOTAL_LEVELS) {
           primaryLabel = 'Level Berikutnya ▶';
-          primaryFn = () => startLevel(g + 1);
+          primaryFn = () => startLevel(g + 1, true);
         } else {
           primaryLabel = '🎉 Tingkat Tuntas!';
-          primaryFn = () => openTiers();
+          primaryFn = () => openTiers(true);
         }
         secondaryLabel = 'Pilih Level';
-        secondaryFn = () => openLevels(S.level.tier);
+        secondaryFn = () => openLevels(S.level.tier, true);
         if (newlyUnlocked) note = '🔓 Level berikutnya terbuka!';
         else if (earned > prev) note = '⭐ Bintang bertambah!';
       } else {
@@ -1049,9 +1110,9 @@
         title = 'Belum Berhasil';
         note = 'Butuh minimal 7 benar — kamu ' + S.correct + '. Coba lagi!';
         primaryLabel = 'Coba Lagi 🔁';
-        primaryFn = () => startLevel(g);
+        primaryFn = () => startLevel(g, true);
         secondaryLabel = 'Pilih Level';
-        secondaryFn = () => openLevels(S.level.tier);
+        secondaryFn = () => openLevels(S.level.tier, true);
       }
     } else {
       const best = bestOf(S.mode);
@@ -1061,9 +1122,9 @@
       emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '👍' : '💪';
       title = S.mode === 'tantangan' ? 'Waktu Habis!' : 'Latihan Selesai!';
       primaryLabel = 'Main Lagi';
-      primaryFn = () => startFree(S.mode);
+      primaryFn = () => startFree(S.mode, true);
       secondaryLabel = 'Menu Utama';
-      secondaryFn = goHome;
+      secondaryFn = () => goHome(true);
       if (isRecord) note = '🏆 Rekor Baru!';
     }
 
@@ -1111,32 +1172,22 @@
     S.act = {
       primary: primaryFn,
       secondary: secondaryFn,
-      tertiary: S.mode === 'level' ? goHome : null
+      tertiary: S.mode === 'level' ? () => goHome(true) : null
     };
     $('#btn-primary').textContent = primaryLabel;
     $('#btn-secondary').textContent = secondaryLabel;
     $('#btn-tertiary').classList.toggle('hidden', S.mode !== 'level');
 
     updateBestInfo();
-    show('result');
+    navTo({ screen: 'result' }, true);   // ganti entri kuis di riwayat dengan layar hasil
   }
 
-  function goHome() {
-    updateRankUI();
-    updateAdventure();
-    show('home');
+  function goHome(replace) {
+    navTo({ screen: 'home' }, replace);
   }
 
-  function exitQuiz() {
-    S.finished = true;
-    stopTimer();
-    if (S.mode === 'level' && S.level) {
-      openLevels(S.level.tier);
-    } else {
-      updateBestInfo();
-      show('free');
-    }
-  }
+  /* keluar dari kuis ditangani lewat tombol back / tombol ✕ (history.back)
+     lalu dikonfirmasi lewat dialog popstate — lihat bagian bawah */
 
   /* ---------- tombol & interaksi ---------- */
   $('#btn-mute').textContent = S.muted ? '🔇' : '🔊';
@@ -1147,15 +1198,15 @@
     if (!S.muted) tone(700, 0.07);
   });
 
-  $('#btn-adventure').addEventListener('click', openTiers);
-  $('#btn-free').addEventListener('click', () => { updateBestInfo(); show('free'); });
-  $('#btn-tiers-back').addEventListener('click', goHome);
-  $('#btn-levels-back').addEventListener('click', openTiers);
-  $('#btn-free-back').addEventListener('click', goHome);
+  $('#btn-adventure').addEventListener('click', () => openTiers());
+  $('#btn-free').addEventListener('click', () => openFree());
+  $('#btn-tiers-back').addEventListener('click', () => goHome());
+  $('#btn-levels-back').addEventListener('click', () => openTiers());
+  $('#btn-free-back').addEventListener('click', () => goHome());
 
   $('#mode-latihan').addEventListener('click', () => startFree('latihan'));
   $('#mode-tantangan').addEventListener('click', () => startFree('tantangan'));
-  $('#btn-exit').addEventListener('click', exitQuiz);
+  $('#btn-exit').addEventListener('click', () => { if (!S.finished) history.back(); });
 
   $('#btn-primary').addEventListener('click', () => { if (S.act && S.act.primary) S.act.primary(); });
   $('#btn-secondary').addEventListener('click', () => { if (S.act && S.act.secondary) S.act.secondary(); });
@@ -1167,7 +1218,8 @@
       const b = $$('#options .option')[Number(e.key) - 1];
       if (b) b.click();
     } else if (e.key === 'Escape') {
-      exitQuiz();
+      if (!modal.classList.contains('hidden')) $('#modal-no').click();
+      else if (!S.finished) history.back();
     }
   });
 
@@ -1178,6 +1230,60 @@
   updateBestInfo();
   updateRankUI();
   updateAdventure();
+
+  /* ---------- tombol back HP ----------
+     Setiap layar punya entri riwayat. Saat back ditekan di tengah kuis,
+     muncul konfirmasi; di layar lain back berpindah layar mundur. */
+  let pendingExit = null;
+  const modal = $('#modal');
+
+  window.addEventListener('popstate', (e) => {
+    const st = e.state;
+    if (!st || !st.screen) return;   // di home: biarkan aplikasi tertutup / minimize
+    if (st.screen === 'quiz') {      // entri kuis basi (seharusnya tak terjadi)
+      navTo({ screen: 'home' }, true);
+      return;
+    }
+    const inQuiz = screens.quiz.classList.contains('active') && !S.finished;
+    if (inQuiz) {
+      if (modal.classList.contains('hidden')) {
+        pendingExit = st;            // back pertama: tampilkan konfirmasi
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');   // back kedua: langsung keluar
+        S.finished = true;
+        stopTimer();
+        navState = st;
+        displayState(st);
+        pendingExit = null;
+      }
+      return;
+    }
+    navState = st;
+    displayState(st);
+  });
+
+  $('#modal-no').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    if (pendingExit) {
+      try { history.pushState(S.quizNav, ''); navState = S.quizNav; } catch (e2) { /* diabaikan */ }
+      pendingExit = null;
+    }
+  });
+
+  $('#modal-yes').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    if (pendingExit) {
+      const st = pendingExit;
+      pendingExit = null;
+      S.finished = true;
+      stopTimer();
+      navState = st;
+      displayState(st);
+    }
+  });
+
+  try { history.replaceState({ screen: 'home' }, ''); } catch (e2) { /* diabaikan */ }
 
   /* ---------- install PWA ---------- */
   const btnInstall = $('#btn-install');
